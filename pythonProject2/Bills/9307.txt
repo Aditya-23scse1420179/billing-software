@@ -1,0 +1,23 @@
+	Welcome Webcode Retail
+
+ Bill Number:9307
+ Customer Name:prateek
+ Phone Number :8416937854
+===========================================================
+ Products			 QTY			Price
+===========================================================
+ Bath Soap 			3			120
+ Spray			2			360
+ Body loshan			7			1260
+ Daal			1			60
+ Sugar			3			420
+ Cock 			3			180
+ Thumsup 			2			100
+ Sprite 			3			180
+-----------------------------------------------------------
+ Cosmetic Tax						Rs 87.0
+ Grocery Tax						Rs 48.0
+ Grocery Tax						Rs 23.0
+-----------------------------------------------------------
+ Total Bill :						Rs :2838.0
+-----------------------------------------------------------
