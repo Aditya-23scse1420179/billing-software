@@ -329,7 +329,7 @@
       <div class="section-title">Cold Drinks</div>
       <div class="product-row"><label>Maza</label><input type="number" id="maza" min="0" value="0" /></div>
       <div class="product-row"><label>Coke</label><input type="number" id="coke" min="0" value="0" /></div>
-      <div class="product-row"><label>Thumps Up</label><input type="number" id="thumsup" min="0" value="0" /></div>
+      <div class="product-row"><label>Thumbs Up</label><input type="number" id="thumsup" min="0" value="0" /></div>
       <div class="product-row"><label>Limca</label><input type="number" id="limca" min="0" value="0" /></div>
       <div class="product-row"><label>Pepsi</label><input type="number" id="pepsi" min="0" value="0" /></div>
       <div class="product-row"><label>Sprite</label><input type="number" id="sprite" min="0" value="0" /></div>
@@ -419,7 +419,7 @@
       spray:'Hair Spray', gel:'Hair Gel', lotion:'Body Lotion',
       rice:'Rice', food_oil:'Food Oil', daal:'Daal',
       wheat:'Wheat', sugar:'Sugar', tea:'Tea',
-      maza:'Maza', coke:'Coke', thumsup:'Thumps Up',
+      maza:'Maza', coke:'Coke', thumsup:'Thumbs Up',
       limca:'Limca', pepsi:'Pepsi', sprite:'Sprite'
     };
 
@@ -555,7 +555,7 @@
       if (bills[search]) {
         document.getElementById('bill-area').value = bills[search];
       } else {
-        showAlert('ERROR', `Bill number "${search}" not found.`);
+        showAlert('Error', `Bill number "${search}" not found.`);
       }
     }
 
@@ -565,9 +565,7 @@
     }
 
     function clearData() {
-      ['soap','face_cream','face_wash','spray','gel','lotion',
-       'rice','food_oil','daal','wheat','sugar','tea',
-       'maza','coke','thumsup','limca','pepsi','sprite'].forEach(id => {
+      [...COSMETICS, ...GROCERY, ...COLD_DRINKS].forEach(id => {
         document.getElementById(id).value = 0;
       });
       document.getElementById('c-name').value   = '';
