@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BILLING SOFTWARE</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Times New Roman", serif;
+      background: #074463;
+      color: #fff;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    #header {
+      background: #074463;
+      border: 6px groove #888;
+      padding: 10px 20px;
+      text-align: center;
+      font-size: 2rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+
+    /* ── Sections ── */
+    .section {
+      border: 6px groove #888;
+      padding: 10px 14px;
+      margin: 8px 6px;
+      border-radius: 4px;
+    }
+
+    .section-title {
+      color: gold;
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ── Customer Details ── */
+    #customer-section {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    #customer-section label {
+      font-weight: bold;
+      font-size: 1.1rem;
+      white-space: nowrap;
+    }
+
+    #customer-section input {
+      font-family: Arial, sans-serif;
+      font-size: 0.95rem;
+      font-weight: bold;
+      padding: 6px 8px;
+      border: 4px inset #888;
+      background: #fff;
+      color: #000;
+      width: 160px;
+    }
+
+    #customer-section button {
+      padding: 8px 18px;
+      font-size: 1rem;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      background: cadetblue;
+      color: #fff;
+      border: 4px outset #888;
+      cursor: pointer;
+    }
+
+    #customer-section button:hover { background: #3a8fa8; }
+
+    /* ── Main content grid ── */
+    #main-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1.6fr;
+      gap: 0 0;
+      margin: 0 6px;
+    }
+
+    /* ── Product panels ── */
+    .product-panel {
+      border: 6px groove #888;
+      padding: 10px 14px;
+      margin: 4px;
+    }
+
+    .product-panel .section-title { margin-bottom: 10px; }
+
+    .product-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+
+    .product-row label {
+      font-size: 1rem;
+      font-weight: bold;
+      color: lightgreen;
+      width: 130px;
+    }
+
+    .product-row input[type="number"] {
+      width: 80px;
+      font-family: "Times New Roman", serif;
+      font-size: 1rem;
+      font-weight: bold;
+      padding: 4px 6px;
+      border: 3px inset #888;
+      background: #fff;
+      color: #000;
+      text-align: center;
+    }
+
+    /* ── Bill area ── */
+    #bill-panel {
+      border: 6px groove #888;
+      padding: 10px 14px;
+      margin: 4px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #bill-title {
+      text-align: center;
+      font-weight: bold;
+      font-size: 1rem;
+      border: 4px groove #888;
+      padding: 4px;
+      margin-bottom: 8px;
+      color: #000;
+      background: #ddd;
+    }
+
+    #bill-area {
+      flex: 1;
+      width: 100%;
+      min-height: 310px;
+      font-family: "Courier New", monospace;
+      font-size: 0.85rem;
+      background: #fff;
+      color: #000;
+      border: 2px solid #888;
+      padding: 8px;
+      resize: vertical;
+      overflow-y: auto;
+    }
+
+    /* ── Bill menu ── */
+    #bill-menu {
+      border: 6px groove #888;
+      padding: 10px 14px;
+      margin: 4px 6px 8px 6px;
+    }
+
+    #bill-menu-inner {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .totals-group {
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 4px 10px;
+      align-items: center;
+    }
+
+    .totals-group label {
+      font-size: 0.9rem;
+      font-weight: bold;
+      white-space: nowrap;
+    }
+
+    .totals-group input {
+      font-family: Arial, sans-serif;
+      font-size: 0.85rem;
+      font-weight: bold;
+      padding: 4px 6px;
+      border: 4px inset #888;
+      background: #fff;
+      color: #000;
+      width: 160px;
+    }
+
+    #btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-left: auto;
+    }
+
+    #btn-group button {
+      padding: 14px 0;
+      width: 120px;
+      font-size: 1rem;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      background: cadetblue;
+      color: #fff;
+      border: 4px outset #888;
+      cursor: pointer;
+    }
+
+    #btn-group button:hover { background: #3a8fa8; }
+
+    /* ── Modal overlay ── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-box {
+      background: #eee;
+      color: #000;
+      border: 4px outset #888;
+      padding: 24px 30px;
+      min-width: 320px;
+      max-width: 90vw;
+      border-radius: 4px;
+      font-family: Arial, sans-serif;
+      font-size: 1rem;
+    }
+
+    .modal-box h3 {
+      margin-bottom: 12px;
+      font-size: 1.1rem;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .modal-actions button {
+      padding: 8px 20px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: cadetblue;
+      color: #fff;
+      border: 3px outset #888;
+    }
+
+    .modal-actions button.cancel { background: #888; }
+
+    @media (max-width: 900px) {
+      #main-grid { grid-template-columns: 1fr 1fr; }
+      #bill-panel { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 600px) {
+      #main-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div id="header">BILLING SOFTWARE</div>
+
+  <!-- Customer Details -->
+  <div class="section">
+    <div class="section-title">Customer Details</div>
+    <div id="customer-section">
+      <label for="c-name">Customer Name</label>
+      <input type="text" id="c-name" placeholder="Enter name" />
+
+      <label for="c-phone">Phone Number</label>
+      <input type="tel" id="c-phone" placeholder="Enter phone" />
+
+      <label for="c-bill-no">Bill Number</label>
+      <input type="text" id="c-bill-no" readonly />
+
+      <label for="search-bill">Search Bill No.</label>
+      <input type="text" id="search-bill" placeholder="Bill number" />
+      <button onclick="findBill()">Search</button>
+    </div>
+  </div>
+
+  <!-- Main Grid: 3 product panels + bill area -->
+  <div id="main-grid">
+
+    <!-- Cosmetics -->
+    <div class="product-panel">
+      <div class="section-title">Cosmetics</div>
+      <div class="product-row"><label>Bath Soap</label><input type="number" id="soap" min="0" value="0" /></div>
+      <div class="product-row"><label>Face Cream</label><input type="number" id="face_cream" min="0" value="0" /></div>
+      <div class="product-row"><label>Face Wash</label><input type="number" id="face_wash" min="0" value="0" /></div>
+      <div class="product-row"><label>Hair Spray</label><input type="number" id="spray" min="0" value="0" /></div>
+      <div class="product-row"><label>Hair Gel</label><input type="number" id="gel" min="0" value="0" /></div>
+      <div class="product-row"><label>Body Lotion</label><input type="number" id="lotion" min="0" value="0" /></div>
+    </div>
+
+    <!-- Grocery -->
+    <div class="product-panel">
+      <div class="section-title">Grocery</div>
+      <div class="product-row"><label>Rice</label><input type="number" id="rice" min="0" value="0" /></div>
+      <div class="product-row"><label>Food Oil</label><input type="number" id="food_oil" min="0" value="0" /></div>
+      <div class="product-row"><label>Daal</label><input type="number" id="daal" min="0" value="0" /></div>
+      <div class="product-row"><label>Wheat</label><input type="number" id="wheat" min="0" value="0" /></div>
+      <div class="product-row"><label>Sugar</label><input type="number" id="sugar" min="0" value="0" /></div>
+      <div class="product-row"><label>Tea</label><input type="number" id="tea" min="0" value="0" /></div>
+    </div>
+
+    <!-- Cold Drinks -->
+    <div class="product-panel">
+      <div class="section-title">Cold Drinks</div>
+      <div class="product-row"><label>Maza</label><input type="number" id="maza" min="0" value="0" /></div>
+      <div class="product-row"><label>Coke</label><input type="number" id="coke" min="0" value="0" /></div>
+      <div class="product-row"><label>Thumps Up</label><input type="number" id="thumsup" min="0" value="0" /></div>
+      <div class="product-row"><label>Limca</label><input type="number" id="limca" min="0" value="0" /></div>
+      <div class="product-row"><label>Pepsi</label><input type="number" id="pepsi" min="0" value="0" /></div>
+      <div class="product-row"><label>Sprite</label><input type="number" id="sprite" min="0" value="0" /></div>
+    </div>
+
+    <!-- Bill Area -->
+    <div class="product-panel" id="bill-panel">
+      <div id="bill-title">Bill Area</div>
+      <textarea id="bill-area" readonly></textarea>
+    </div>
+
+  </div>
+
+  <!-- Bill Menu -->
+  <div class="section" id="bill-menu">
+    <div class="section-title">Bill Menu</div>
+    <div id="bill-menu-inner">
+      <div class="totals-group">
+        <label>Total Cosmetic Price</label>
+        <input type="text" id="cosmetic-price" readonly />
+        <label>Cosmetic Tax (5%)</label>
+        <input type="text" id="cosmetic-tax" readonly />
+
+        <label>Total Grocery Price</label>
+        <input type="text" id="grocery-price" readonly />
+        <label>Grocery Tax (10%)</label>
+        <input type="text" id="grocery-tax" readonly />
+
+        <label>Total Cold-Drinks Price</label>
+        <input type="text" id="drink-price" readonly />
+        <label>Cold-Drinks Tax (5%)</label>
+        <input type="text" id="drink-tax" readonly />
+      </div>
+
+      <div id="btn-group">
+        <button onclick="calcTotal()">Total</button>
+        <button onclick="generateBill()">Generate Bill</button>
+        <button onclick="confirmClear()">Clear Bill</button>
+        <button onclick="printBill()">Print Bill</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div class="modal-overlay" id="confirm-modal">
+    <div class="modal-box">
+      <h3 id="confirm-title">Confirm</h3>
+      <p id="confirm-msg"></p>
+      <div class="modal-actions">
+        <button id="confirm-yes">Yes</button>
+        <button class="cancel" onclick="closeModal('confirm-modal')">No</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alert Modal -->
+  <div class="modal-overlay" id="alert-modal">
+    <div class="modal-box">
+      <h3 id="alert-title">Info</h3>
+      <p id="alert-msg"></p>
+      <div class="modal-actions">
+        <button onclick="closeModal('alert-modal')">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── Prices (Rs.) ──────────────────────────────────────────────
+    const PRICES = {
+      // Cosmetics
+      soap: 40, face_cream: 120, face_wash: 60,
+      spray: 180, gel: 140, lotion: 180,
+      // Grocery
+      rice: 40, food_oil: 120, daal: 60,
+      wheat: 180, sugar: 140, tea: 180,
+      // Cold Drinks
+      maza: 60, coke: 60, thumsup: 50,
+      limca: 45, pepsi: 45, sprite: 60
+    };
+
+    const COSMETICS   = ['soap','face_cream','face_wash','spray','gel','lotion'];
+    const GROCERY     = ['rice','food_oil','daal','wheat','sugar','tea'];
+    const COLD_DRINKS = ['maza','coke','thumsup','limca','pepsi','sprite'];
+
+    const LABELS = {
+      soap:'Bath Soap', face_cream:'Face Cream', face_wash:'Face Wash',
+      spray:'Hair Spray', gel:'Hair Gel', lotion:'Body Lotion',
+      rice:'Rice', food_oil:'Food Oil', daal:'Daal',
+      wheat:'Wheat', sugar:'Sugar', tea:'Tea',
+      maza:'Maza', coke:'Coke', thumsup:'Thumps Up',
+      limca:'Limca', pepsi:'Pepsi', sprite:'Sprite'
+    };
+
+    // Computed totals (set by calcTotal, used by generateBill)
+    let computed = null;
+
+    // ── Bill number ───────────────────────────────────────────────
+    function randBill() {
+      return String(Math.floor(1000 + Math.random() * 9000));
+    }
+    document.getElementById('c-bill-no').value = randBill();
+
+    // ── Welcome message ───────────────────────────────────────────
+    function welcomeMsg() {
+      const billNo = document.getElementById('c-bill-no').value;
+      const name   = document.getElementById('c-name').value;
+      const phone  = document.getElementById('c-phone').value;
+      return [
+        '\tWelcome Webcode Retail',
+        '',
+        ` Bill Number : ${billNo}`,
+        ` Customer Name : ${name}`,
+        ` Phone Number  : ${phone}`,
+        '='.repeat(55),
+        ` Products\t\t\tQTY\t\tPrice`,
+        '='.repeat(55)
+      ].join('\n');
+    }
+
+    function refreshBillHeader() {
+      const ta = document.getElementById('bill-area');
+      ta.value = welcomeMsg();
+    }
+    refreshBillHeader();
+
+    // ── Quantity helpers ──────────────────────────────────────────
+    function qty(id) { return Math.max(0, parseInt(document.getElementById(id).value) || 0); }
+
+    // ── Calculate totals ──────────────────────────────────────────
+    function calcTotal() {
+      const cosmeticRaw = COSMETICS.reduce((s, id) => s + qty(id) * PRICES[id], 0);
+      const groceryRaw  = GROCERY.reduce((s, id) => s + qty(id) * PRICES[id], 0);
+      const drinkRaw    = COLD_DRINKS.reduce((s, id) => s + qty(id) * PRICES[id], 0);
+
+      const cosmeticTax = Math.round(cosmeticRaw * 0.05 * 100) / 100;
+      const groceryTax  = Math.round(groceryRaw  * 0.10 * 100) / 100;
+      const drinkTax    = Math.round(drinkRaw    * 0.05 * 100) / 100;
+
+      const grandTotal  = cosmeticRaw + groceryRaw + drinkRaw + cosmeticTax + groceryTax + drinkTax;
+
+      document.getElementById('cosmetic-price').value = 'Rs. ' + cosmeticRaw.toFixed(2);
+      document.getElementById('cosmetic-tax').value   = 'Rs. ' + cosmeticTax.toFixed(2);
+      document.getElementById('grocery-price').value  = 'Rs. ' + groceryRaw.toFixed(2);
+      document.getElementById('grocery-tax').value    = 'Rs. ' + groceryTax.toFixed(2);
+      document.getElementById('drink-price').value    = 'Rs. ' + drinkRaw.toFixed(2);
+      document.getElementById('drink-tax').value      = 'Rs. ' + drinkTax.toFixed(2);
+
+      computed = { cosmeticRaw, groceryRaw, drinkRaw, cosmeticTax, groceryTax, drinkTax, grandTotal };
+    }
+
+    // ── Generate bill ─────────────────────────────────────────────
+    function generateBill() {
+      const name  = document.getElementById('c-name').value.trim();
+      const phone = document.getElementById('c-phone').value.trim();
+      if (!name || !phone) {
+        showAlert('Error', 'Customer Name and Phone Number are required.');
+        return;
+      }
+      if (!computed) {
+        showAlert('Error', 'Please click "Total" first to calculate prices.');
+        return;
+      }
+
+      let lines = [welcomeMsg()];
+
+      function addItems(ids) {
+        ids.forEach(id => {
+          const q = qty(id);
+          if (q > 0) {
+            const total = q * PRICES[id];
+            lines.push(` ${LABELS[id].padEnd(18)}\t${q}\t\tRs. ${total}`);
+          }
+        });
+      }
+
+      addItems(COSMETICS);
+      addItems(GROCERY);
+      addItems(COLD_DRINKS);
+
+      lines.push('-'.repeat(55));
+      if (computed.cosmeticTax > 0) lines.push(` Cosmetic Tax (5%)\t\t\tRs. ${computed.cosmeticTax.toFixed(2)}`);
+      if (computed.groceryTax  > 0) lines.push(` Grocery Tax (10%)\t\t\tRs. ${computed.groceryTax.toFixed(2)}`);
+      if (computed.drinkTax    > 0) lines.push(` Cold-Drink Tax (5%)\t\t\tRs. ${computed.drinkTax.toFixed(2)}`);
+      lines.push('-'.repeat(55));
+      lines.push(` Total Bill :\t\t\t\tRs. ${computed.grandTotal.toFixed(2)}`);
+      lines.push('-'.repeat(55));
+
+      const billText = lines.join('\n');
+      document.getElementById('bill-area').value = billText;
+
+      saveBillPrompt(billText);
+    }
+
+    // ── Save bill ─────────────────────────────────────────────────
+    function saveBillPrompt(billText) {
+      const billNo = document.getElementById('c-bill-no').value;
+      showConfirm('Save Bill', 'Do you want to save the Bill?', () => {
+        // Save to localStorage
+        const bills = JSON.parse(localStorage.getItem('bills') || '{}');
+        bills[billNo] = billText;
+        localStorage.setItem('bills', JSON.stringify(bills));
+
+        // Also trigger download as .txt
+        const blob = new Blob([billText], { type: 'text/plain' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `Bill_${billNo}.txt`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+
+        showAlert('Saved', `Bill No. ${billNo} saved successfully.`);
+      });
+    }
+
+    // ── Find bill ─────────────────────────────────────────────────
+    function findBill() {
+      const search = document.getElementById('search-bill').value.trim();
+      if (!search) {
+        showAlert('Error', 'Please enter a bill number to search.');
+        return;
+      }
+      const bills = JSON.parse(localStorage.getItem('bills') || '{}');
+      if (bills[search]) {
+        document.getElementById('bill-area').value = bills[search];
+      } else {
+        showAlert('ERROR', `Bill number "${search}" not found.`);
+      }
+    }
+
+    // ── Clear data ────────────────────────────────────────────────
+    function confirmClear() {
+      showConfirm('Clear', 'Do you really want to clear all data?', clearData);
+    }
+
+    function clearData() {
+      ['soap','face_cream','face_wash','spray','gel','lotion',
+       'rice','food_oil','daal','wheat','sugar','tea',
+       'maza','coke','thumsup','limca','pepsi','sprite'].forEach(id => {
+        document.getElementById(id).value = 0;
+      });
+      document.getElementById('c-name').value   = '';
+      document.getElementById('c-phone').value  = '';
+      document.getElementById('search-bill').value = '';
+      document.getElementById('cosmetic-price').value = '';
+      document.getElementById('cosmetic-tax').value   = '';
+      document.getElementById('grocery-price').value  = '';
+      document.getElementById('grocery-tax').value    = '';
+      document.getElementById('drink-price').value    = '';
+      document.getElementById('drink-tax').value      = '';
+      computed = null;
+      document.getElementById('c-bill-no').value = randBill();
+      refreshBillHeader();
+    }
+
+    // ── Print bill ────────────────────────────────────────────────
+    function printBill() {
+      const content = document.getElementById('bill-area').value;
+      if (!content.trim()) {
+        showAlert('Info', 'No bill content to print.');
+        return;
+      }
+      const win = window.open('', '_blank', 'width=600,height=700');
+      win.document.write(`<pre style="font-family:monospace;font-size:14px;padding:20px;">${content}</pre>`);
+      win.document.close();
+      win.print();
+    }
+
+    // ── Modal helpers ─────────────────────────────────────────────
+    function showAlert(title, msg) {
+      document.getElementById('alert-title').textContent = title;
+      document.getElementById('alert-msg').textContent   = msg;
+      document.getElementById('alert-modal').classList.add('active');
+    }
+
+    function showConfirm(title, msg, onYes) {
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-msg').textContent   = msg;
+      const modal = document.getElementById('confirm-modal');
+      modal.classList.add('active');
+      const yesBtn = document.getElementById('confirm-yes');
+      const newBtn = yesBtn.cloneNode(true);
+      yesBtn.parentNode.replaceChild(newBtn, yesBtn);
+      newBtn.addEventListener('click', () => {
+        modal.classList.remove('active');
+        onYes();
+      });
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(el => {
+      el.addEventListener('click', e => { if (e.target === el) el.classList.remove('active'); });
+    });
+  </script>
+</body>
+</html>
