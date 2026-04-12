@@ -9,7 +9,6 @@ and **Node.js · Express · SQLite** on the back-end.
 [![Node.js](https://img.shields.io/badge/Node.js-18%2B-brightgreen?logo=node.js)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-4.x-black?logo=express)](https://expressjs.com/)
 [![SQLite](https://img.shields.io/badge/SQLite-3-blue?logo=sqlite)](https://www.sqlite.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
 
@@ -294,6 +293,4 @@ For major changes, please open an issue first to discuss what you would like to 
 
 ---
 
-## 📄 License
 
-[MIT](LICENSE) © 2026 Aditya
