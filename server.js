@@ -43,8 +43,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Serve static front-end files from the project root
-app.use(express.static(__dirname));
+// Serve static front-end files from the public/ directory only
+app.use(express.static(path.join(__dirname, 'public')));
 
 // ── API routes ────────────────────────────────────────────────
 
@@ -81,7 +81,7 @@ app.post('/api/bills', (req, res) => {
     });
     return res.status(201).json({ success: true, bill_no });
   } catch (err) {
-    if (err.code === 'SQLITE_CONSTRAINT_UNIQUE') {
+    if (err.message && err.message.includes('UNIQUE constraint failed')) {
       return res.status(409).json({ error: `Bill number "${bill_no}" already exists.` });
     }
     console.error(err);

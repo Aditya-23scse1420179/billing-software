@@ -89,14 +89,16 @@ Bills can also be downloaded instantly as a `.txt` file for offline record-keepi
 ```
 billing-software/
 │
-├── index.html          # Single-page application shell
-├── style.css           # All styles (responsive, modals, grid)
-├── script.js           # Front-end logic – fetch API, bill generation
+├── public/
+│   ├── index.html      # Single-page application shell
+│   ├── style.css       # All styles (responsive, modals, grid)
+│   └── script.js       # Front-end logic – fetch API, bill generation
 │
 ├── server.js           # Express server + REST API
 ├── schema.sql          # SQLite table/index definitions
-├── bills.db            # SQLite database (auto-created on first run)
+├── bills.db            # SQLite database (auto-created on first run, git-ignored)
 │
+├── .gitignore          # Excludes node_modules, bills.db, package-lock.json
 ├── package.json        # Node.js project metadata & dependencies
 └── README.md           # This file
 ```
