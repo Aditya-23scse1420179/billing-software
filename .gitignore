@@ -1,0 +1,11 @@
+# Node
+node_modules/
+
+# SQLite generated files
+bills.db
+bills.db-shm
+bills.db-wal
+
+# OS
+.DS_Store
+Thumbs.db

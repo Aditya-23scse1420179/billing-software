@@ -124,39 +124,101 @@ function generateBill() {
   saveBillPrompt(billText);
 }
 
-// ── Save bill ─────────────────────────────────────────────────
+// ── API base URL (same origin when served by Express) ─────────
+const API = '/api/bills';
+
+// ── Save bill  →  POST /api/bills ─────────────────────────────
 function saveBillPrompt(billText) {
   const billNo = document.getElementById('c-bill-no').value;
-  showConfirm('Save Bill', 'Do you want to save the Bill?', () => {
-    // Save to localStorage
-    const bills = JSON.parse(localStorage.getItem('bills') || '{}');
-    bills[billNo] = billText;
-    localStorage.setItem('bills', JSON.stringify(bills));
+  const name   = document.getElementById('c-name').value.trim();
+  const phone  = document.getElementById('c-phone').value.trim();
 
-    // Also trigger download as .txt
-    const blob = new Blob([billText], { type: 'text/plain' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `Bill_${billNo}.txt`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+  showConfirm('Save Bill', 'Do you want to save this bill to the database?', async () => {
+    try {
+      const payload = {
+        bill_no:       billNo,
+        customer_name: name,
+        phone,
+        cosmetic_raw:  computed ? computed.cosmeticRaw : 0,
+        cosmetic_tax:  computed ? computed.cosmeticTax : 0,
+        grocery_raw:   computed ? computed.groceryRaw  : 0,
+        grocery_tax:   computed ? computed.groceryTax  : 0,
+        drink_raw:     computed ? computed.drinkRaw    : 0,
+        drink_tax:     computed ? computed.drinkTax    : 0,
+        grand_total:   computed ? computed.grandTotal  : 0,
+        bill_text:     billText
+      };
 
-    showAlert('Saved', `Bill No. ${billNo} saved successfully.`);
+      const res = await fetch(API, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showAlert('Error', data.error || 'Could not save bill.');
+        return;
+      }
+
+      // Also trigger .txt download
+      const blob = new Blob([billText], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `Bill_${billNo}.txt`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+
+      showAlert('Saved', `Bill No. ${billNo} saved to database successfully.`);
+    } catch (err) {
+      showAlert('Error', 'Network error – could not reach the server.');
+      console.error(err);
+    }
   });
 }
 
-// ── Find bill ─────────────────────────────────────────────────
-function findBill() {
+// ── Find bill  →  GET /api/bills/:billNo ──────────────────────
+async function findBill() {
   const search = document.getElementById('search-bill').value.trim();
   if (!search) {
     showAlert('Error', 'Please enter a bill number to search.');
     return;
   }
-  const bills = JSON.parse(localStorage.getItem('bills') || '{}');
-  if (bills[search]) {
-    document.getElementById('bill-area').value = bills[search];
-  } else {
-    showAlert('Error', `Bill number "${search}" not found.`);
+  try {
+    const res  = await fetch(`${API}/${encodeURIComponent(search)}`);
+    const data = await res.json();
+    if (!res.ok) {
+      showAlert('Error', data.error || `Bill "${search}" not found.`);
+      return;
+    }
+    document.getElementById('bill-area').value = data.bill_text;
+  } catch (err) {
+    showAlert('Error', 'Network error – could not reach the server.');
+    console.error(err);
+  }
+}
+
+// ── All Bills  →  GET /api/bills ──────────────────────────────
+async function showAllBills() {
+  try {
+    const res   = await fetch(API);
+    const bills = await res.json();
+
+    if (!bills.length) {
+      showAlert('All Bills', 'No bills have been saved yet.');
+      return;
+    }
+
+    let rows = bills.map(b =>
+      `  #${b.id}  |  Bill ${b.bill_no}  |  ${b.customer_name}  |  ` +
+      `Ph: ${b.phone}  |  Rs. ${Number(b.grand_total).toFixed(2)}  |  ${b.created_at}`
+    ).join('\n');
+
+    document.getElementById('bill-area').value =
+      '='.repeat(55) + '\n All Saved Bills\n' + '='.repeat(55) + '\n' + rows;
+  } catch (err) {
+    showAlert('Error', 'Network error – could not reach the server.');
+    console.error(err);
   }
 }
 
