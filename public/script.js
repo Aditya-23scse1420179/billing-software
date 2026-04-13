@@ -27,6 +27,9 @@ const LABELS = {
 // Computed totals (set by calcTotal, used by generateBill)
 let computed = null;
 
+// Invoice id returned by the server after saving (used by printBill)
+let currentInvoiceId = null;
+
 // ── Bill number ───────────────────────────────────────────────
 function randBill() {
   return String(Math.floor(1000 + Math.random() * 9000));
@@ -121,14 +124,34 @@ function generateBill() {
   const billText = lines.join('\n');
   document.getElementById('bill-area').value = billText;
 
-  saveBillPrompt(billText);
+  // Build itemised list for normalised DB storage
+  const billItems = [];
+  [...COSMETICS, ...GROCERY, ...COLD_DRINKS].forEach(id => {
+    const q = qty(id);
+    if (q > 0) {
+      const taxRate   = GROCERY.includes(id) ? 10 : 5;
+      const unitPrice = PRICES[id];
+      const lineRaw   = q * unitPrice;
+      const lineTax   = Math.round(lineRaw * (taxRate / 100) * 100) / 100;
+      billItems.push({
+        sku:        id,
+        name:       LABELS[id],
+        qty:        q,
+        unit_price: unitPrice,
+        tax_rate:   taxRate,
+        line_total: lineRaw + lineTax
+      });
+    }
+  });
+
+  saveBillPrompt(billText, billItems);
 }
 
 // ── API base URL (same origin when served by Express) ─────────
 const API = '/api/bills';
 
 // ── Save bill  →  POST /api/bills ─────────────────────────────
-function saveBillPrompt(billText) {
+function saveBillPrompt(billText, billItems) {
   const billNo = document.getElementById('c-bill-no').value;
   const name   = document.getElementById('c-name').value.trim();
   const phone  = document.getElementById('c-phone').value.trim();
@@ -146,7 +169,8 @@ function saveBillPrompt(billText) {
         drink_raw:     computed ? computed.drinkRaw    : 0,
         drink_tax:     computed ? computed.drinkTax    : 0,
         grand_total:   computed ? computed.grandTotal  : 0,
-        bill_text:     billText
+        bill_text:     billText,
+        items:         billItems || []
       };
 
       const res = await fetch(API, {
@@ -160,6 +184,9 @@ function saveBillPrompt(billText) {
         showAlert('Error', data.error || 'Could not save bill.');
         return;
       }
+
+      // Store invoice_id so printBill can render a proper HTML invoice
+      currentInvoiceId = data.invoice_id || null;
 
       // Also trigger .txt download
       const blob = new Blob([billText], { type: 'text/plain' });
@@ -192,6 +219,7 @@ async function findBill() {
       return;
     }
     document.getElementById('bill-area').value = data.bill_text;
+    currentInvoiceId = null; // text-only display; clear invoice reference
   } catch (err) {
     showAlert('Error', 'Network error – could not reach the server.');
     console.error(err);
@@ -216,6 +244,7 @@ async function showAllBills() {
 
     document.getElementById('bill-area').value =
       '='.repeat(55) + '\n All Saved Bills\n' + '='.repeat(55) + '\n' + rows;
+    currentInvoiceId = null;
   } catch (err) {
     showAlert('Error', 'Network error – could not reach the server.');
     console.error(err);
@@ -241,12 +270,26 @@ function clearData() {
   document.getElementById('drink-price').value    = '';
   document.getElementById('drink-tax').value      = '';
   computed = null;
+  currentInvoiceId = null;
   document.getElementById('c-bill-no').value = randBill();
   refreshBillHeader();
 }
 
 // ── Print bill ────────────────────────────────────────────────
-function printBill() {
+async function printBill() {
+  // If we have a saved invoice, render a proper HTML invoice
+  if (currentInvoiceId) {
+    try {
+      const res  = await fetch(`/api/invoices/${currentInvoiceId}`);
+      const data = await res.json();
+      if (res.ok) {
+        openInvoicePrintWindow(data);
+        return;
+      }
+    } catch (_) { /* fall through to text print */ }
+  }
+
+  // Fallback: text-based print (pre-save or search result)
   const content = document.getElementById('bill-area').value;
   if (!content.trim()) {
     showAlert('Info', 'No bill content to print.');
@@ -254,6 +297,89 @@ function printBill() {
   }
   const win = window.open('', '_blank', 'width=600,height=700');
   win.document.write(`<pre style="font-family:monospace;font-size:14px;padding:20px;">${content}</pre>`);
+  win.document.close();
+  win.print();
+}
+
+// ── HTML invoice print window ─────────────────────────────────
+function openInvoicePrintWindow({ invoice, customer, items, payments }) {
+  const itemRows = items.map(it => `
+    <tr>
+      <td>${it.description || ''}</td>
+      <td style="text-align:right">${it.qty}</td>
+      <td style="text-align:right">Rs.&nbsp;${Number(it.unit_price).toFixed(2)}</td>
+      <td style="text-align:right">${it.tax_rate}%</td>
+      <td style="text-align:right">Rs.&nbsp;${Number(it.line_total).toFixed(2)}</td>
+    </tr>`).join('');
+
+  const paymentNote = payments.length
+    ? `<p><strong>Payments received:</strong> ${
+        payments.map(p => `Rs.&nbsp;${Number(p.amount).toFixed(2)} via ${p.method}`).join('; ')
+      }</p>`
+    : '';
+
+  const discountRow = Number(invoice.discount) > 0
+    ? `<div>Discount: &minus;Rs.&nbsp;${Number(invoice.discount).toFixed(2)}</div>`
+    : '';
+
+  const html = `<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice #${invoice.invoice_number}</title>
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:Arial,sans-serif;margin:40px;color:#333;max-width:700px}
+    h1{text-align:center;margin-bottom:4px}
+    .subtitle{text-align:center;color:#777;margin-top:0;margin-bottom:24px}
+    .meta{display:flex;justify-content:space-between;margin:20px 0;gap:20px}
+    .meta div{flex:1}
+    table{width:100%;border-collapse:collapse;margin-top:16px}
+    th{background:#f0f0f0;padding:8px 10px;text-align:left;border-bottom:2px solid #ccc}
+    td{padding:7px 10px;border-bottom:1px solid #eee}
+    .totals{margin-top:12px;text-align:right;line-height:1.8}
+    .grand{font-size:1.15em;font-weight:bold;border-top:2px solid #333;padding-top:4px;margin-top:4px}
+    .payments{margin-top:20px;font-size:0.95em;color:#555}
+    @media print{body{margin:10px}}
+  </style>
+</head>
+<body>
+  <h1>&#x1F9FE; Webcode Retail</h1>
+  <p class="subtitle">Invoice Receipt</p>
+  <div class="meta">
+    <div>
+      <strong>Invoice No:</strong> ${invoice.invoice_number}<br>
+      <strong>Date:</strong> ${invoice.invoice_date}<br>
+      <strong>Status:</strong> ${invoice.status}
+    </div>
+    <div style="text-align:right">
+      <strong>Customer:</strong> ${customer.name}<br>
+      <strong>Phone:</strong> ${customer.phone}
+    </div>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th style="text-align:right">Qty</th>
+        <th style="text-align:right">Unit Price</th>
+        <th style="text-align:right">Tax</th>
+        <th style="text-align:right">Total</th>
+      </tr>
+    </thead>
+    <tbody>${itemRows}</tbody>
+  </table>
+  <div class="totals">
+    <div>Subtotal: Rs.&nbsp;${Number(invoice.subtotal).toFixed(2)}</div>
+    <div>Tax: Rs.&nbsp;${Number(invoice.tax).toFixed(2)}</div>
+    ${discountRow}
+    <div class="grand">Grand Total: Rs.&nbsp;${Number(invoice.total).toFixed(2)}</div>
+  </div>
+  <div class="payments">${paymentNote}</div>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=700,height=900');
+  win.document.write(html);
   win.document.close();
   win.print();
 }
