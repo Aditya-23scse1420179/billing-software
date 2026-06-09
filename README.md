@@ -20,13 +20,16 @@ and **Node.js · Express · SQLite** on the back-end.
 2. [Features](#-features)
 3. [Tech Stack](#-tech-stack)
 4. [Project Structure](#-project-structure)
-5. [Database Schema](#-database-schema)
-6. [API Reference](#-api-reference)
-7. [Getting Started](#-getting-started)
-8. [How to Use](#-how-to-use)
-9. [Product Catalogue](#-product-catalogue)
-10. [Screenshots](#-screenshots)
-11. [Roadmap](#-roadmap)
+5. [Architecture](#-architecture)
+6. [Workflow](#-workflow)
+7. [Interview Questions](#-interview-questions)
+8. [Database Schema](#-database-schema)
+9. [API Reference](#-api-reference)
+10. [Getting Started](#-getting-started)
+11. [How to Use](#-how-to-use)
+12. [Product Catalogue](#-product-catalogue)
+13. [Screenshots](#-screenshots)
+14. [Roadmap](#-roadmap)
 
 ---
 
@@ -102,6 +105,82 @@ billing-software/
 ├── package.json        # Node.js project metadata & dependencies
 └── README.md           # This file
 ```
+
+---
+
+## 🏗 Architecture
+
+The project follows a **layered monolith** pattern.
+
+### 1) Presentation Layer (`public/index.html`, `public/style.css`, `public/script.js`)
+- Single-page POS UI in vanilla JS.
+- Handles customer input, quantity input, tax/total calculation, bill text generation, API calls, print/download, and modal UX.
+
+### 2) Application/API Layer (`server.js`)
+- Exposes REST APIs for bills, customers, products, invoices, and payments.
+- Handles request parsing, validation, orchestration, error responses, and static file serving.
+
+### 3) Domain/Business Layer (`server.js` transaction + billing flow logic)
+- Encodes billing flow and invoice creation rules.
+- Executes transactional flow: **find/create customer → create invoice → create invoice items**.
+
+### 4) Data Layer (`schema.sql`, SQLite via `better-sqlite3`)
+- Legacy flat persistence: `bills`.
+- Normalized persistence: `customer`, `product`, `invoice`, `invoice_item`, `payment`.
+- Uses indexes, foreign keys, and WAL mode for integrity and read/write behavior.
+
+### 5) Persistence Strategy
+- **Hybrid persistence model** is used:
+  - `bills` table supports fast legacy receipt retrieval.
+  - normalized tables support reporting, invoice details, and future extensibility.
+
+---
+
+## 🔄 Workflow
+
+End-to-end billing workflow:
+
+1. Cashier enters customer details and product quantities.
+2. Frontend calculates category totals and tax values.
+3. Frontend generates formatted receipt text and itemized payload.
+4. User confirms save, and frontend sends `POST /api/bills`.
+5. Backend saves the bill into legacy `bills`.
+6. Backend transaction persists normalized records (`customer`, `invoice`, `invoice_item`) when items are provided.
+7. API responds with `{ bill_no, invoice_id }`.
+8. Frontend stores `invoice_id`, downloads TXT receipt, and enables rich print using invoice API.
+9. Search/All Bills views read from legacy bill endpoints; invoice print view reads normalized invoice data.
+
+---
+
+## 🎯 Interview Questions
+
+Possible interview questions for this project:
+
+1. Why did you choose a layered monolith instead of microservices?
+2. Why does the system keep both `bills` and normalized invoice tables?
+3. How does your transaction design guarantee invoice consistency?
+4. Where are request validation and business rules enforced?
+5. Why did you choose SQLite + `better-sqlite3` for this use case?
+6. What does WAL mode improve in SQLite?
+7. How are duplicate bill numbers handled?
+8. How would you avoid collisions for generated bill numbers at higher scale?
+9. What indexes are most critical and why?
+10. How would you scale from one store to multiple stores/tenants?
+11. How would you introduce authentication and authorization?
+12. How would you support cashier roles and permission boundaries?
+13. How would you implement stock deduction and low-stock alerts?
+14. How would you model invoice status transitions (`unpaid`, `paid`, `cancelled`) safely?
+15. How would you support partial payments and settlement history?
+16. How would you version APIs without breaking current clients?
+17. How would you migrate from SQLite to PostgreSQL?
+18. How would you improve resilience for network/database failures?
+19. What are current security gaps and how would you close them first?
+20. How would you improve observability (structured logs, metrics, tracing)?
+21. How would you refactor business logic out of `server.js` cleanly?
+22. How would you design automated tests for tax, totals, and persistence?
+23. How would you test transaction rollback behavior?
+24. How would you ensure backward compatibility for legacy bill search after schema evolution?
+25. How would you redesign bill number generation to be deterministic and auditable?
 
 ---
 
