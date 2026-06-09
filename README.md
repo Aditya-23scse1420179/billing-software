@@ -127,7 +127,7 @@ The project follows a **layered monolith** pattern.
 ### 4) Data Layer (`schema.sql`, SQLite via `better-sqlite3`)
 - Legacy flat persistence: `bills`.
 - Normalized persistence: `customer`, `product`, `invoice`, `invoice_item`, `payment`.
-- Uses indexes, foreign keys, and WAL mode for integrity and read/write behavior.
+- Uses indexes, foreign keys, and WAL mode for integrity; WAL allows readers to continue while a writer is active.
 
 ### 5) Persistence Strategy
 - **Hybrid persistence model** is used:
@@ -145,7 +145,7 @@ End-to-end billing workflow:
 3. Frontend generates formatted receipt text and itemized payload.
 4. User confirms save, and frontend sends `POST /api/bills`.
 5. Backend saves the bill into legacy `bills`.
-6. Backend transaction persists normalized records (`customer`, `invoice`, `invoice_item`) when items are provided.
+6. Backend transaction persists normalized records (`customer`, `invoice`, `invoice_item`) only when the request includes a non-empty `items` array.
 7. API responds with `{ bill_no, invoice_id }`.
 8. Frontend stores `invoice_id`, downloads TXT receipt, and enables rich print using invoice API.
 9. Search/All Bills views read from legacy bill endpoints; invoice print view reads normalized invoice data.
